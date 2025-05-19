@@ -1,0 +1,19 @@
+<%layout("/templates/boilerplate")%>
+<body>
+    <h2>New Listing Form</h2>
+    <form method="POST" action="/listings">
+        <input name="title" placeholder="Enter the title" type="text"/>
+        <br></br><br></br>
+        <input name="description" placeholder="Description..." type="text"/>
+        <br></br><br></br>
+        <input name="image" placeholder="url pleasee" type="text">
+        <br></br><br></br>
+        <input name="price" placeholder="how much will this cost" type="number"/>
+        <br></br><br></br>
+        <input name="location" placeholder="location" type="text"/>
+        <br></br><br></br>
+        <input name="country" placeholder="country" type="text"/>
+        <br></br><br></br>
+        <button>Create Listing</button>
+    </form>
+</body>
