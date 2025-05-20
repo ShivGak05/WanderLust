@@ -6,8 +6,10 @@
     </form> -->
     <div class="row row-cols-lg-3 row-cols-md-3 row-cols-sm-1">
    <%for(listing of allListings){%>
-    <div class="card" style="width: 20rem;">
-  <img src="<%=listing.image%>" class="card-img-top" alt="...">
+    <a class="listing-link" href="/listings/<%=listing._id%>">
+    <div class="card">
+  <img src="<%=listing.image%>" class="card-img-top" alt="..." style="height: 20rem" >
+  <div class="card-img-overlay"></div>
   <div class="card-body">
     <p class="card-text">
         <b><%=listing.title%></b><br>
@@ -15,6 +17,7 @@
     </p>
   </div>
 </div>
+</a>
    <%}%>
     </div>
 </body>
