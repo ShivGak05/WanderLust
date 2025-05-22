@@ -34,6 +34,10 @@ router.get("/:id",wrapAsync(async (req,res)=>{
       throw new ExpressError(404, 'Page Not Found');
     }
     let listing=await Listing.findById(id).populate("reviews");
+    if(!listing){
+        req.flash("error","Listing does not exist!");
+        return res.redirect("/listings");
+    }else
     res.render("listings/show.ejs",{listing});
 }))
 
@@ -41,21 +45,28 @@ router.post("/",validatelisting,wrapAsync(async(req,res)=>{
     const listing=req.body.listing;
     const newlisting=new Listing(listing);
     await newlisting.save();
+    req.flash("success","New Listing Created!");
     res.redirect("/listings");
 }))
 router.get("/:id/edit",wrapAsync(async(req,res)=>{
     let {id}=req.params;
     let listing=await Listing.findById(id);
+    if(!listing){
+        req.flash("error","Listing does not exist!");
+        return res.redirect("/listings");
+    }
     res.render("listings/edit.ejs",{listing});
 }))
 router.put("/:id",validatelisting,wrapAsync(async(req,res)=>{
     let {id}=req.params;
     await Listing.findByIdAndUpdate(id,{...req.body.listing});
+    req.flash("success","Listing Edited!");
     res.redirect(`/listings/${id}`);
 }))
 router.delete("/:id",wrapAsync(async(req,res)=>{
      let {id}=req.params;
      await Listing.findByIdAndDelete(id);
+     req.flash("success","Listing Deleted!");
      res.redirect("/listings");
 }))
 module.exports=router;
