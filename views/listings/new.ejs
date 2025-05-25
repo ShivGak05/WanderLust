@@ -3,7 +3,7 @@
     <div class="row">
         <div class="col-8 offset-2">
     <h2>Create New Listing:</h2>
-    <form method="POST" action="/listings" class="needs-validation" novalidate>
+    <form method="POST" action="/listings" class="needs-validation" novalidate enctype="multipart/form-data">
         <div class="mb-3">
         <label for="listing[title]" class="form-label">Title:</label>
         <input name="listing[title]" placeholder="Enter the title" type="text" class="form-control" required/>
@@ -17,14 +17,30 @@
         <div class="invalid-feedback">Description is required</div>
         </div>
         <div class="mb-3">
-        <label for="listing[image]" class="form-label">Image URL:</label>
-        <input name="listing[image]" placeholder="url pleasee" type="text" class="form-control">
+        <label for="listing[image]" class="form-label">Upload Image</label>
+        <input name="listing[image]" type="file" class="form-control">
         </div>
         <div class="mb-3">
             <label for="listing[price]" class="form-label">Price:</label>
         <input name="listing[price]" placeholder="12000" type="text" class="form-control" required/>
         <div class="valid-feedback">Price Looks Good!</div>
         <div class="invalid-feedback">Price should be valid!</div>
+        </div>
+        <div class="mb-3">
+            <label for="category" class="form-label">Category:</label>
+            <select class="form-select" aria-label="Default select example" id="category" name="listing[category]" required>
+  <option selected>Select Category</option>
+  <option value="rooms">Rooms</option>
+  <option value="iconiccities">Iconic Cities</option>
+  <option value="mountains">Mountains</option>
+  <option value="castles">Castles</option>
+  <option value="amazingpools">Amazing Pools</option>
+  <option value="camping">Camping</option>
+  <option value="arctic">Arctic</option>
+  <option value="pilgrimage">Pilgrimage</option>
+  <option value="farms">Farms</option>
+  <option value="others">Others</option>
+</select>
         </div>
         <div class="row">
         <div class="mb-3 col-md-4">

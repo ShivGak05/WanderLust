@@ -11,6 +11,7 @@ const wrapAsync=require("../utils/wrapAsync.js");
 const ExpressError=require("../utils/ExpressError.js");
 const {listingSchema}=require("../Schema.js");
 const {reviewSchema}=require("../Schema.js");
+const reviewcontroller=require("../controllers/review.js");
 const validatereview=(req,res,next)=>{
     let {error}=reviewSchema.validate(req.body);
     if(error){
@@ -21,25 +22,25 @@ const validatereview=(req,res,next)=>{
         next();
     }
 }
+const isLoggedin=(req,res,next)=>{
+    if(!req.isAuthenticated()){
+        req.session.redirectURL=req.originalUrl;
+        req.flash("error","You must be logged in first!");
+        return res.redirect("/login");
+    }
+    next();
+}
+const isAuthor=async(req,res,next)=>{
+    let {id,reviewid}=req.params;
+    let review=await Review.findById(reviewid);
+    if(!review.author.equals(res.locals.currUser._id)){
+        req.flash("error","You are not the author of this review");
+        return res.redirect(`/listings/${id}`);
+    }
+    next();
+}
+router.post("/",isLoggedin,validatereview,wrapAsync(reviewcontroller.createreview));
 
-router.post("/",validatereview,wrapAsync(async(req,res)=>{
-    let {id}=req.params;
-    let review=req.body.review;
-    let newreview=new Review(review);
-    let listing=await Listing.findById(id);
-    await listing.reviews.push(newreview);
-    await newreview.save();
-    await listing.save();
-    req.flash("success","New Review Created!");
-    res.redirect(`/listings/${id}`);
-}))
 
-
-router.delete("/:reviewid",wrapAsync(async(req,res)=>{
-    let{id,reviewid}=req.params;
-    await Listing.findByIdAndUpdate(id,{$pull:{reviews:reviewid}});
-    await Review.findByIdAndDelete(reviewid);
-    req.flash("success","Review Deleted");
-    res.redirect(`/listings/${id}`);
-}))
+router.delete("/:reviewid",isLoggedin,isAuthor,wrapAsync(reviewcontroller.deletereview));
 module.exports=router;

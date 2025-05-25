@@ -11,6 +11,11 @@ const wrapAsync=require("../utils/wrapAsync.js");
 const ExpressError=require("../utils/ExpressError.js");
 const {listingSchema}=require("../Schema.js");
 const {reviewSchema}=require("../Schema.js");
+const listingcontroller=require("../controllers/listing.js");
+const multer=require('multer');
+const {storage}=require("../cloudConfig.js");
+const upload=multer({storage});
+
 const validatelisting=(req,res,next)=>{
     let {error}=listingSchema.validate(req.body);
     if(error){
@@ -20,53 +25,53 @@ const validatelisting=(req,res,next)=>{
         next();
     }
 }
-router.get("/",wrapAsync(async(req,res)=>{
-    const allListings=await Listing.find({})
-    res.render("./listings/index.ejs",{allListings});
-}))
-router.get("/new",wrapAsync(async(req,res)=>{
-    res.render("listings/new.ejs");
-}))
-router.get("/:id",wrapAsync(async (req,res)=>{
-    
-    let {id}=req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new ExpressError(404, 'Page Not Found');
+const isLoggedin=(req,res,next)=>{
+    if(!req.isAuthenticated()){
+        req.session.redirectURL=req.originalUrl;
+        req.flash("error","You must be logged in first!");
+        return res.redirect("/login");
     }
-    let listing=await Listing.findById(id).populate("reviews");
-    if(!listing){
-        req.flash("error","Listing does not exist!");
-        return res.redirect("/listings");
-    }else
-    res.render("listings/show.ejs",{listing});
-}))
-
-router.post("/",validatelisting,wrapAsync(async(req,res)=>{
-    const listing=req.body.listing;
-    const newlisting=new Listing(listing);
-    await newlisting.save();
-    req.flash("success","New Listing Created!");
-    res.redirect("/listings");
-}))
-router.get("/:id/edit",wrapAsync(async(req,res)=>{
+    next();
+}
+const isOwner=async(req,res,next)=>{
     let {id}=req.params;
     let listing=await Listing.findById(id);
-    if(!listing){
-        req.flash("error","Listing does not exist!");
+    if(!listing.owner._id.equals(res.locals.currUser._id)){
+        req.flash("You are not the owner of this listing!");
+        return res.redirect(`/listings/${id}`);
+    }
+    next();
+}
+router
+.route("/")
+.get(wrapAsync(listingcontroller.index))
+.post(isLoggedin,validatelisting,upload.single("listing[image]"),wrapAsync(listingcontroller.createlisting));
+
+router.get("/new",isLoggedin,wrapAsync(listingcontroller.rendernewform));
+router.get("/check",wrapAsync(async(req,res)=>{
+    let {category}=req.query;
+    const allListings=await Listing.find({category:category});
+    if(allListings.length==0){
+        req.flash("error","No place in this category yet. Please try later!");
         return res.redirect("/listings");
     }
-    res.render("listings/edit.ejs",{listing});
+    res.render("listings/index.ejs",{allListings});
 }))
-router.put("/:id",validatelisting,wrapAsync(async(req,res)=>{
-    let {id}=req.params;
-    await Listing.findByIdAndUpdate(id,{...req.body.listing});
-    req.flash("success","Listing Edited!");
-    res.redirect(`/listings/${id}`);
+router.get("/search",wrapAsync(async(req,res)=>{
+    let maybe=req.query.maybe;
+    let allListings = await Listing.find({$or: [{title:maybe},{location:maybe}]});
+    if(!allListings){
+        req.flash("error","Listing not found");
+        return res.redirect("/listings");
+    }
+    res.render("listings/index.ejs",{allListings});
 }))
-router.delete("/:id",wrapAsync(async(req,res)=>{
-     let {id}=req.params;
-     await Listing.findByIdAndDelete(id);
-     req.flash("success","Listing Deleted!");
-     res.redirect("/listings");
-}))
+
+router
+.route("/:id")
+.get(wrapAsync(listingcontroller.showlist))
+.put(isLoggedin,isOwner,validatelisting,upload.single("listing[image]"),wrapAsync(listingcontroller.updatelist))
+.delete(isLoggedin,isOwner,wrapAsync(listingcontroller.deletelist));
+
+router.get("/:id/edit",isLoggedin,isOwner,wrapAsync(listingcontroller.rendereditform));
 module.exports=router;

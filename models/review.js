@@ -14,6 +14,14 @@ const reviewSchema=new Schema({
         type:Date,
         default:Date.now(),
     },
+    author:{
+        type:Schema.Types.ObjectId,
+        ref:"User",
+    },
+    isAnonymous:{
+        type:Boolean,
+        default:false,
+    },
 })
 const Review=new mongoose.model('Review',reviewSchema);
 module.exports=Review;

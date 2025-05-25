@@ -9,26 +9,21 @@ const wrapAsync=require("../utils/wrapAsync.js");
 const ExpressError=require("../utils/ExpressError.js");
 const User=require("../models/user.js");
 const passport = require("passport");
-router.get("/signup",(req,res)=>{
-    res.render("users/signup.ejs");
-})
-router.post("/signup",async(req,res)=>{
-    try{
-    let {username,email,password}=req.body;
-    let newUser=new User({username,email});
-    await User.register(newUser,password);
-    req.flash("success","User was registered successfully");
-    res.redirect("/listings");
-    }catch(e){
-        req.flash("error",e.message);
-        res.redirect("/signup");
+const usercontroller=require("../controllers/user.js");
+const saveurl=(req,res,next)=>{
+    if(req.session.redirectURL){
+    res.locals.redirectURL=req.session.redirectURL;
     }
-})
-router.get("/login",(req,res)=>{
-    res.render("users/login.ejs");
-})
-router.post("/login",passport.authenticate("local",{failureFlash:true, failureRedirect:"/login"}),async(req,res)=>{
-       req.flash("success","Welcome back to WanderLust!!");
-       res.redirect("/listings");
-})
+    next();
+}
+router
+.route("/signup")
+.get(usercontroller.signup)
+.post(usercontroller.signupaction);
+
+router.route("/login")
+.get(usercontroller.loginform)
+.post(saveurl,passport.authenticate("local",{failureFlash:true, failureRedirect:"/login"}),usercontroller.loginaction);
+
+router.get("/logout",usercontroller.logout);
 module.exports=router;

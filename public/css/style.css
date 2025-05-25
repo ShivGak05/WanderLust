@@ -1,6 +1,6 @@
 body{
   font-family: "Plus Jakarta Sans", sans-serif !important;
-  display: flex;
+  display:flex;
   flex-direction: column;
   height: 100vh;
 }
@@ -81,4 +81,9 @@ body{
     display: flex !important;
     justify-content: space-evenly;
     margin-bottom: 2rem !important;
+}
+#map{
+    height: 400px;
+    width: 50vw;
+    border: 2px solid red;
 }
